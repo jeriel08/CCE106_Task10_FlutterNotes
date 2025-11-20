@@ -13,6 +13,7 @@ class _HomePageState extends State<HomePage> {
   final CrudService service = CrudService();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _quantityController = TextEditingController();
+  bool showFavoritesOnly = false;
 
   @override
   Widget build(BuildContext context) {
@@ -22,6 +23,21 @@ class _HomePageState extends State<HomePage> {
         title: const Text('Firebase | SANAO'),
         centerTitle: true,
         backgroundColor: Colors.teal,
+        actions: [
+          IconButton(
+            onPressed: () {
+              setState(() {
+                showFavoritesOnly = !showFavoritesOnly;
+              });
+            },
+            // Icon changes based on filter state
+            icon: Icon(
+              showFavoritesOnly ? Icons.favorite : Icons.favorite_border,
+              color: Colors.white,
+            ),
+            tooltip: 'Filter Favorites',
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => openAddDialog(context),
@@ -34,15 +50,34 @@ class _HomePageState extends State<HomePage> {
           if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
           }
-          final docs = snapshot.data!.docs;
+          var docs = snapshot.data!.docs;
+
+          if (showFavoritesOnly) {
+            docs = docs.where((doc) {
+              // Safely access data to avoid errors on old items
+              final data = doc.data() as Map<String, dynamic>;
+              return data.containsKey('is_favorite') &&
+                  data['is_favorite'] == true;
+            }).toList();
+          }
+
           if (docs.isEmpty) {
-            return const Center(
-              child: Text('No items found.', style: TextStyle(fontSize: 18)),
+            return Center(
+              child: Text(
+                showFavoritesOnly ? 'No favorites yet.' : 'No items found.',
+                style: const TextStyle(fontSize: 18),
+              ),
             );
           }
+
           return ListView.builder(
             itemBuilder: (context, index) {
               var item = docs[index];
+              var data = item.data() as Map<String, dynamic>;
+              bool isFavorite = data.containsKey('is_favorite')
+                  ? data['is_favorite']
+                  : false;
+
               return Card(
                 elevation: 3,
                 shape: RoundedRectangleBorder(
@@ -68,6 +103,14 @@ class _HomePageState extends State<HomePage> {
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      IconButton(
+                        onPressed: () =>
+                            service.toggleFavorite(item.id, isFavorite),
+                        icon: Icon(
+                          isFavorite ? Icons.favorite : Icons.favorite_border,
+                          color: isFavorite ? Colors.red : Colors.grey,
+                        ),
+                      ),
                       IconButton(
                         onPressed: () => openEditDialog(context, item),
                         icon: Icon(Icons.edit, color: Colors.orange),
@@ -170,8 +213,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   void openEditDialog(BuildContext context, DocumentSnapshot item) {
-    _nameController.text = item['name'];
-    _quantityController.text = item['quantity'];
+    final data = item.data() as Map<String, dynamic>;
+    _nameController.text = data['name'];
+    _quantityController.text = data['quantity'].toString();
 
     showDialog(
       context: context,
@@ -215,6 +259,7 @@ class _HomePageState extends State<HomePage> {
                   _nameController.text,
                   int.parse(_quantityController.text),
                 );
+                Navigator.pop(context);
               }
             },
             style: ElevatedButton.styleFrom(

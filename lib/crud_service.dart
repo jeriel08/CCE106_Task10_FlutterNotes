@@ -11,6 +11,7 @@ class CrudService {
       'name': name,
       'quantity': quantity,
       'created_at': Timestamp.now(),
+      'is_favorite': false,
     });
   }
 
@@ -21,6 +22,10 @@ class CrudService {
 
   Future<void> updateItem(String id, String name, int quantity) {
     return items.doc(id).update({'name': name, 'quantity': quantity});
+  }
+
+  Future<void> toggleFavorite(String id, bool currentStatus) {
+    return items.doc(id).update({'is_favorite': !currentStatus});
   }
 
   Future<void> deleteItem(String id) {
