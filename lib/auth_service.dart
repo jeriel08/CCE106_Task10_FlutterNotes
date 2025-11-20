@@ -91,4 +91,13 @@ class AuthService {
   }
 
   Stream<User?> get userStream => _auth.authStateChanges();
+
+  Future<void> sendPasswordResetEmail(String email) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email);
+    } catch (e) {
+      debugPrint("Password Reset Error: $e");
+      rethrow;
+    }
+  }
 }
