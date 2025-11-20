@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_crudnote/auth_service.dart';
 import 'package:firebase_crudnote/crud_service.dart';
 import 'package:flutter/material.dart';
 
@@ -11,6 +12,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final CrudService service = CrudService();
+  final AuthService auth = AuthService();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _quantityController = TextEditingController();
   bool showFavoritesOnly = false;
@@ -20,7 +22,16 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       backgroundColor: Colors.grey,
       appBar: AppBar(
-        title: const Text('Firebase | SANAO'),
+        leading: IconButton(
+          onPressed: () {
+            auth.signOut();
+          },
+          icon: Icon(Icons.logout, color: Colors.white),
+        ),
+        title: const Text(
+          'Firebase | SANAO',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+        ),
         centerTitle: true,
         backgroundColor: Colors.teal,
         actions: [
