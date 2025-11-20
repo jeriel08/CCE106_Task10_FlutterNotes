@@ -63,6 +63,8 @@ class _LoginPageState extends State<LoginPage> {
                     passwordController.text,
                   );
 
+                  if (!mounted) return;
+
                   setState(() {
                     loading = false;
                   });
@@ -112,14 +114,14 @@ class _LoginPageState extends State<LoginPage> {
 
                   final user = await auth.signInWithGoogle();
 
+                  if (!mounted) return;
+
                   setState(() => loading = false);
 
                   if (user != null) {
-                    Navigator.pushReplacementNamed(
+                    Navigator.pushReplacement(
                       context,
-                      MaterialPageRoute(
-                        builder: (_) => HomePage(),
-                      ).settings.name!,
+                      MaterialPageRoute(builder: (_) => HomePage()),
                     );
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
